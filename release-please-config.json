@@ -25,12 +25,17 @@
         {
           "type": "toml",
           "path": "/Cargo.toml",
-          "jsonpath": "$.workspace.dependencies['uhoh','uhoh-macros'].version"
+          "jsonpath": "$.workspace.dependencies.uhoh.version"
+        },
+        {
+          "type": "toml",
+          "path": "/Cargo.toml",
+          "jsonpath": "$.workspace.dependencies['uhoh-macros'].version"
         },
         {
           "type": "toml",
           "path": "/Cargo.lock",
-          "jsonpath": "$.package[?(@.name == 'uhoh' || @.name == 'uhoh-macros')].version"
+          "jsonpath": "$.package[?(@.name.value == 'uhoh' || @.name.value == 'uhoh-macros')].version"
         }
       ]
     }
