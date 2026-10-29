@@ -1,0 +1,29 @@
+[workspace]
+resolver = "3"
+members = [
+  "uhoh",
+  "uhoh/macros",
+]
+
+[workspace.package]
+rust-version = "1.99.1"
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/bitshift-systems/bitkit-rs"
+authors = ["Bitshift Systems <engineering@bitshift.systems>"]
+
+[workspace.lints]
+
+[workspace.dependencies]
+axum = { version = "0.8", features = ["macros"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+http = "1.5"
+proc-macro2 = "1.0.74"
+quote = "1.0.35"
+syn = { version = "3", features = ["full"] }
+serde_tokenstream = "0.3.0"
+
+# monorepo packages
+uhoh = { path = "uhoh" }
+uhoh-macros = { path = "uhoh/macros" }

@@ -1,0 +1,21 @@
+[package]
+name = "uhoh"
+version = "0.1.0"
+edition.workspace = true
+readme = "README.md"
+description = "Derive consistent application errors with stable codes and optional HTTP responses"
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+axum = ["http", "serde", "dep:axum", "uhoh-macros/axum"]
+http = ["dep:http", "uhoh-macros/http"]
+serde = ["dep:serde", "dep:serde_json", "uhoh-macros/serde"]
+
+[dependencies]
+axum = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+uhoh-macros.workspace = true

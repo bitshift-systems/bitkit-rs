@@ -1,0 +1,64 @@
+---
+name: Release
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish crates
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Setup Repo
+        uses: bitshift-systems/.github/actions/setup-repo@80203ed69d67558f5b74d3419eae9748624fd162 # setup-repo-v1.0.1
+        with:
+          cache-key: rust-release
+
+      - name: Select released crates
+        id: packages
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          [[ "$RELEASE_TAG" =~ ^(.+)-([0-9]+\.[0-9]+\.[0-9]+.*)$ ]]
+          component="${BASH_REMATCH[1]}"
+          version="${BASH_REMATCH[2]}"
+          path=$(jq -er --arg component "$component" '
+            .packages | to_entries | map(select(.value.component == $component))
+            | if length == 1 then .[0].key else error("Unknown component") end
+          ' release-please-config.json)
+          packages=$(cargo metadata --no-deps --format-version 1 --locked | jq -ec \
+            --arg path "$path" --arg version "$version" '
+            .workspace_root as $root
+            | [.packages[] | select(.publish != [])
+               | select(.manifest_path | startswith($root + "/" + $path + "/"))]
+            | if length > 0 and all(.version == $version) then map(.name)
+              else error("No crates found or release versions do not match") end
+          ')
+          echo "packages=$packages" >> "$GITHUB_OUTPUT"
+
+      - name: Publish
+        # Keep the repository's token-based publishing until trusted publishing is configured on crates.io.
+        # jactionlint ignore=use-trusted-publishing
+        run: |
+          mapfile -t packages < <(jq -r '.[]' <<< "$PACKAGES")
+          cargo publish "${packages[@]/#/--package=}" --all-features --locked --registry crates-io
+        env:
+          PACKAGES: ${{ steps.packages.outputs.packages }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

@@ -1,0 +1,5 @@
+# Default codeowner is the Tactica team
+* @bitshift-systems/engineering
+
+# Tactica Admins are required to approve changes to CODEOWNERS
+/.github/CODEOWNERS @bitshift-systems/engineering-admins

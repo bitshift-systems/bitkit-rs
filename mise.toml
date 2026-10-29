@@ -1,0 +1,80 @@
+[tools]
+rust = "1.99.1"
+"aqua:nextest-rs/nextest/cargo-nextest" = "0.9.140"
+jactionlint = "2.3.0"
+shellcheck = "0.11.0"
+
+[env]
+_.file = ".env"
+
+CARGO_TERM_COLOR = "always"
+RUST_BACKTRACE = "1"
+
+[tasks."build:rust"]
+description = "Build all packages in the workspace"
+run = "cargo build --workspace --locked"
+
+[tasks."build:rust:release"]
+description = "Build all packages in the workspace in release mode"
+run = "cargo build --release --locked -p uhoh"
+
+[tasks."test:rust"]
+description = "Run the unit tests for all packages in the workspace"
+depends = ["test:rust:unit"]
+
+[tasks."test:rust:unit"]
+description = "Run the unit tests for all packages in the workspace"
+run = "cargo nextest run --workspace --all-features --locked"
+
+[tasks."test:rust:archive"]
+description = "Run the unit tests for all packages in the workspace"
+run = """
+mise run "test:rust:archive:build"
+mise run "test:rust:archive:unit"
+"""
+
+[tasks."test:rust:archive:build"]
+description = "Build the test archive for Rust tests"
+run = """
+set -eu
+mkdir -p target/nextest
+cargo nextest archive --workspace --all-features --locked \
+  --archive-file target/nextest/workspace.tar.zst
+"""
+
+[tasks."test:rust:archive:unit"]
+description = "Run the hermetic suite from the archive `test-archive` built (no compile, no doctests)"
+# Database integration tests are ignored here and run in their own CI job.
+# `cargo-nextest nextest`, not `cargo nextest`: running an archive needs no
+# cargo, and the CI jobs that do this install no Rust toolchain.
+run = '''
+cargo-nextest nextest run --profile ci --workspace-remap . \
+  --archive-file "${BITKIT_NEXTEST_ARCHIVE:-target/nextest/workspace.tar.zst}"
+'''
+
+[tasks."lint:rust"]
+description = "Run Rust linter"
+run = "cargo clippy --workspace --all-targets --all-features --locked -- -D warnings"
+
+[tasks."lint:ci"]
+description = "Run GitHub Actions linter"
+run = """
+#!/usr/bin/env bash
+cmd="jactionlint"
+if [[ "$CI" == "true" ]]; then
+  cmd="$cmd --format github"
+fi
+$cmd
+"""
+
+[tasks."fmt:rust"]
+description = "Run Rust formatter"
+run = "cargo fmt --all"
+
+[tasks."fmt:rust:check"]
+description = "Run Rust formatter"
+run = "cargo fmt --all -- --check"
+
+[tasks."util:rust:components"]
+description = "Install Rust components required by project tasks"
+run = "rustup component add rustfmt clippy"
