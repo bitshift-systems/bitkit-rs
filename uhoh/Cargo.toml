@@ -1,6 +1,6 @@
 [package]
 name = "uhoh"
-version = "0.1.1"
+version = "0.1.2"
 edition.workspace = true
 readme = "README.md"
 description = "Derive consistent application errors with stable codes and optional HTTP responses"
