@@ -18,13 +18,23 @@ run = "cargo build --workspace --locked"
 description = "Build all packages in the workspace in release mode"
 run = "cargo build --release --locked -p uhoh"
 
+[tasks."docs:rust"]
+description = "Build and open rustdoc for a crate with all features enabled"
+alias = "docs"
+usage = 'arg "<crate>" help="Cargo package name (for example, uhoh)"'
+run = 'cargo doc --package "${usage_crate?}" --all-features --no-deps --locked --open'
+
 [tasks."test:rust"]
-description = "Run the unit tests for all packages in the workspace"
-depends = ["test:rust:unit"]
+description = "Run unit tests and doctests for all packages in the workspace"
+depends = ["test:rust:unit", "test:rust:docs"]
 
 [tasks."test:rust:unit"]
 description = "Run the unit tests for all packages in the workspace"
 run = "cargo nextest run --workspace --all-features --locked"
+
+[tasks."test:rust:docs"]
+description = "Run doctests for all packages in the workspace"
+run = "cargo test --doc --workspace --all-features --locked"
 
 [tasks."test:rust:archive"]
 description = "Run the unit tests for all packages in the workspace"
