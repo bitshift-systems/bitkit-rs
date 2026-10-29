@@ -4,6 +4,18 @@
 
 A service building kit written in Rust to help build software faster.
 
+## Local documentation
+
+Build a crate's rustdoc with all features enabled and open it in your browser:
+
+```sh
+mise run docs uhoh
+mise run docs uhoh-macros
+```
+
+`docs` is an alias for `docs:rust`. Use the Cargo package name as the argument.
+Dependency documentation is omitted.
+
 ## Releases
 
 `uhoh` and `uhoh-macros` share a version and a GitHub release. Conventional
