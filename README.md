@@ -1,4 +1,7 @@
 # bitkit-rs
+
+[![Build status](https://github.com/bitshift-systems/bitkit-rs/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/bitshift-systems/bitkit-rs/actions/workflows/ci.yaml)
+
 A service building kit written in Rust to help build software faster.
 
 ## Releases

@@ -1,8 +1,11 @@
 # `uhoh`
 
-`uhoh` derives consistent, user-facing application errors from an enum. Each
-variant has a stable error code, a formatted message, and—when the Axum
-feature is enabled—an HTTP status and `IntoResponse` implementation.
+`uhoh` derives consistent, user-facing application errors from an enum.
+
+[![Crates.io](https://img.shields.io/crates/v/uhoh)](https://crates.io/crates/uhoh)
+[![Documentation](https://docs.rs/uhoh/badge.svg)][docs]
+
+More information about this crate can be found in the [crate documentation][docs].
 
 ## Basic errors
 
@@ -173,3 +176,5 @@ Tuple variants use standard positional formatting such as `{0}`. Named-field
 variants can refer to fields by name, such as `{model}` and `{field}`. A
 message without placeholders does not expose its variant payload, which is
 useful for keeping internal context out of user-facing errors.
+
+[docs]: https://docs.rs/axum
