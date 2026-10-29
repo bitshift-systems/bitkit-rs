@@ -25,5 +25,5 @@ syn = { version = "3", features = ["full"] }
 serde_tokenstream = "0.3.0"
 
 # monorepo packages
-uhoh = { path = "uhoh" }
-uhoh-macros = { path = "uhoh/macros" }
+uhoh = { path = "uhoh", version = "0.1.0" }
+uhoh-macros = { path = "uhoh/macros", version = "0.1.0" }

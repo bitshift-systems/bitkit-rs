@@ -21,6 +21,16 @@
           "type": "toml",
           "path": "macros/Cargo.toml",
           "jsonpath": "$.package.version"
+        },
+        {
+          "type": "toml",
+          "path": "/Cargo.toml",
+          "jsonpath": "$.workspace.dependencies['uhoh','uhoh-macros'].version"
+        },
+        {
+          "type": "toml",
+          "path": "/Cargo.lock",
+          "jsonpath": "$.package[?(@.name == 'uhoh' || @.name == 'uhoh-macros')].version"
         }
       ]
     }
