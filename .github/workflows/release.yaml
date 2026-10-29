@@ -25,6 +25,9 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
           persist-credentials: false
 
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+
       - name: Setup Repo
         uses: bitshift-systems/.github/actions/setup-repo@80203ed69d67558f5b74d3419eae9748624fd162 # setup-repo-v1.0.1
         with:
@@ -54,11 +57,9 @@ jobs:
           echo "packages=$packages" >> "$GITHUB_OUTPUT"
 
       - name: Publish
-        # Keep the repository's token-based publishing until trusted publishing is configured on crates.io.
-        # jactionlint ignore=use-trusted-publishing
         run: |
           mapfile -t packages < <(jq -r '.[]' <<< "$PACKAGES")
           cargo publish "${packages[@]/#/--package=}" --all-features --locked --registry crates-io
         env:
           PACKAGES: ${{ steps.packages.outputs.packages }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
