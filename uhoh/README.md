@@ -177,4 +177,4 @@ variants can refer to fields by name, such as `{model}` and `{field}`. A
 message without placeholders does not expose its variant payload, which is
 useful for keeping internal context out of user-facing errors.
 
-[docs]: https://docs.rs/axum
+[docs]: https://docs.rs/uhoh
