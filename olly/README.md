@@ -1,5 +1,8 @@
 # olly
 
+[![Crates.io](https://img.shields.io/crates/v/olly)](https://crates.io/crates/olly)
+[![Documentation](https://docs.rs/uhoh/badge.svg)][docs]
+
 `olly` is an observability preset library for Rust applications.
 Observability means understanding a running application through its outputs.
 A preset supplies a ready-made configuration.
@@ -96,3 +99,5 @@ To run the tests and documentation examples, use this command from the same dire
 ```sh
 cargo test --package olly --locked
 ```
+
+[docs]: https://docs.rs/olly
