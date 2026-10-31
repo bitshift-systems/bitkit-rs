@@ -29,6 +29,6 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
 
 # monorepo packages
-olly = { path = "olly", version = "0.1.0" }
+olly = { path = "olly", version = "0.1.1" }
 uhoh = { path = "uhoh", version = "0.1.2" }
 uhoh-macros = { path = "uhoh/macros", version = "0.1.2" }
