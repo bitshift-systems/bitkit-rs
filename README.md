@@ -12,6 +12,7 @@ These are the crates built within this repo:
 | ---------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------- |
 | [`uhoh`](./uhoh) | Declarative enum errors with HTTP integration          | [![Crates.io](https://img.shields.io/crates/v/uhoh)](https://crates.io/crates/uhoh) |
 | [`olly`](./olly) | Observability (o11y) presets for Bitshift applications | [![Crates.io](https://img.shields.io/crates/v/olly)](https://crates.io/crates/olly) |
+<!-- crates end -->
 
 ## About this Repo
 

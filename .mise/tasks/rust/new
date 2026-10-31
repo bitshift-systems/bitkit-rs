@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+#MISE description="Create a new Rust project"
+#USAGE arg "<crate>" help="The name of the new Rust crate"
+#USAGE flag "-p --path" help="The path of the new Rust crate"
+
+crate_name="${usage_crate?}"
+crate_path="${usage_path:-${crate_name?}}"
+
+if [ -d "${crate_path}" ]; then
+  echo "Error: crate '${crate_name}' already exists at '${crate_path}'."
+  exit 1
+fi
+
+echo "Creating new Rust crate '${crate_name}'..."
+cargo new "${crate_path}" \
+  --name "${crate_name}" \
+  --vcs none \
+  --lib
+
+echo "Updating Cargo.toml..."
+cat <<EOF > "${crate_path}/Cargo.toml"
+[package]
+name = "${crate_name}"
+version = "0.1.0"
+description = "Description here."
+readme = "README.md"
+rust-version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+EOF
+
+echo "Adding new crate README.md..."
+cat <<EOF > "${crate_path}/README.md"
+# \`${crate_name}\`
+
+Description here.
+EOF
+
+# update the release please configuration to add the new component
+echo "Updating release-please configuration..."
+rpconfig="$(cat release-please-config.json)"
+edited="$(
+  printf '%s\n' "${rpconfig}" | \
+    jq \
+      --arg name "${crate_name}" \
+      --arg path "${crate_path}" \
+      '.packages[$path] = {
+        "component": $name,
+        "release-type": "rust",
+        "initial-version": "0.1.0",
+        "extra-files": [
+          {
+            "type": "toml",
+            "path": "/Cargo.toml",
+            "jsonpath": "$.workspace.dependencies." + $name + ".version"
+          },
+          {
+            "type": "toml",
+            "path": "/Cargo.lock",
+            "jsonpath": "$.package[?(@.name.value == '"'"'" + $name + "'"'"')].version"
+          }
+        ]
+      }'
+)"
+echo "${edited}" > release-please-config.json
+
+# Add the crate to the README table.
+echo "Writing new crate entry to README.md..."
+edited="$(
+  awk -v name="${crate_name}" -v path="${crate_path}" '
+    /^<!-- crates end -->$/ {
+      printf "| [`%s`](./%s) | Description here. | [![Crates.io](https://img.shields.io/crates/v/%s)](https://crates.io/crates/%s) |\n", name, path, name, name
+      found = 1
+    }
+    { print }
+    END {
+      if (!found) {
+        print "Error: README.md is missing the <!-- crates end --> marker." > "/dev/stderr"
+        exit 1
+      }
+    }
+  ' README.md
+)"
+printf '%s\n' "${edited}" > README.md
+
+cargo check --manifest-path "${crate_path}/Cargo.toml"
