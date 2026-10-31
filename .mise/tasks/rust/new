@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 #MISE description="Create a new Rust project"
+#MISE tools={taplo="0.10.0"}
 #USAGE arg "<crate>" help="The name of the new Rust crate"
 #USAGE flag "-p --path" help="The path of the new Rust crate"
 
@@ -17,6 +18,9 @@ cargo new "${crate_path}" \
   --name "${crate_name}" \
   --vcs none \
   --lib
+
+echo "Sorting workspace members..."
+taplo fmt --config .config/taplo.toml Cargo.toml
 
 echo "Updating Cargo.toml..."
 cat <<EOF > "${crate_path}/Cargo.toml"

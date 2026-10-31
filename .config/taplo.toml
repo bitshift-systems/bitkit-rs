@@ -1,0 +1,9 @@
+[formatting]
+indent_string = "  "
+
+[[rule]]
+keys = ["workspace.members"]
+
+[rule.formatting]
+reorder_arrays = true
+array_auto_collapse = false
