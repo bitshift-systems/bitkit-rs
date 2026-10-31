@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/bitshift-systems/bitkit-rs/compare/uhoh-0.1.2...uhoh-0.1.3) (2026-10-31)
+
+
+### Documentation
+
+* **uhoh:** rewrite with simple-english skill ([514bc20](https://github.com/bitshift-systems/bitkit-rs/commit/514bc2011fe884b8a0afca51ebc5a9b0e89ac091))
+
 ## [0.1.2](https://github.com/bitshift-systems/bitkit-rs/compare/uhoh-0.1.1...uhoh-0.1.2) (2026-10-29)
 
 
