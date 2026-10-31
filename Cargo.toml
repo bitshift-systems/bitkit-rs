@@ -1,6 +1,7 @@
 [workspace]
 resolver = "3"
 members = [
+  "olly",
   "uhoh",
   "uhoh/macros",
 ]
@@ -24,6 +25,10 @@ quote = "1.0.35"
 syn = { version = "3", features = ["full"] }
 serde_tokenstream = "0.3.0"
 
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+
 # monorepo packages
+olly = { path = "olly", version = "0.1.0" }
 uhoh = { path = "uhoh", version = "0.1.2" }
 uhoh-macros = { path = "uhoh/macros", version = "0.1.2" }
