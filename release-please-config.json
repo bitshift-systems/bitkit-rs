@@ -12,6 +12,24 @@
   "always-update": true,
   "include-commit-authors": true,
   "packages": {
+    "olly": {
+      "component": "olly",
+      "release-type": "rust",
+      "initial-version": "0.1.0",
+      "extra-files": [
+        {
+          "type": "toml",
+          "path": "/Cargo.toml",
+          "jsonpath": "$.workspace.dependencies.olly.version"
+        },
+        {
+          "type": "toml",
+          "path": "/Cargo.lock",
+          "jsonpath": "$.package[?(@.name.value == 'olly')].version"
+        }
+      ]
+    },
+
     "uhoh": {
       "component": "uhoh",
       "release-type": "rust",
