@@ -28,7 +28,7 @@
           "jsonpath": "$.package[?(@.name.value == 'olly')].version"
         }
       ]
-    }
+    },
 
     "uhoh": {
       "component": "uhoh",
