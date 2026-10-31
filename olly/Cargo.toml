@@ -1,6 +1,6 @@
 [package]
 name = "olly"
-version = "0.0.1"
+version = "0.1.1"
 rust-version.workspace = true
 readme = "README.md"
 description = "Observability presets for Rust applications (part of the Bitkit ecosystem)"
