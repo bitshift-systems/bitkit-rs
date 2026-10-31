@@ -23,13 +23,11 @@ tracing = "0.1"
 ```
 
 Adjust the `olly` path to match your local repository location.
-Call `olly::init_tracing()` at application startup, before the first event:
+In `main()`, call `olly::init_tracing()` at application startup, before the first event:
 
 ```rust
-fn main() {
-    olly::init_tracing();
-    tracing::info!(service = "worker", "Application started");
-}
+olly::init_tracing();
+tracing::info!(service = "worker", "Application started");
 ```
 
 ## Logging configuration
