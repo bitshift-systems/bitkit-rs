@@ -41,6 +41,11 @@ cat <<EOF > "${crate_path}/README.md"
 Description here.
 EOF
 
+echo "Inlining README in crate docs..."
+cat <<EOF > "${crate_path}/src/lib.rs"
+#![doc = include_str!("../README.md")]
+EOF
+
 # update the release please configuration to add the new component
 echo "Updating release-please configuration..."
 rpconfig="$(cat release-please-config.json)"
