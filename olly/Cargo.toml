@@ -2,6 +2,8 @@
 name = "olly"
 version = "0.0.1"
 rust-version.workspace = true
+readme = "README.md"
+description = "Observability presets for Rust applications (part of the Bitkit ecosystem)"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
