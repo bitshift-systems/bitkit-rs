@@ -1,16 +1,19 @@
 # `uhoh`
 
-`uhoh` derives consistent, user-facing application errors from an enum.
+`uhoh` generates application errors with messages and codes from an enum.
+An enum is a type with named alternatives.
+Each alternative is a variant.
 
 [![Crates.io](https://img.shields.io/crates/v/uhoh)](https://crates.io/crates/uhoh)
 [![Documentation](https://docs.rs/uhoh/badge.svg)][docs]
 
-More information about this crate can be found in the [crate documentation][docs].
+Read the [API reference][docs] for more examples and details.
 
 ## Basic errors
 
-Use a message as the first argument and a named `code` argument for every
-variant:
+The `Error` derive generates code for your enum.
+Use a message as the first argument for each variant.
+Give each variant a named `code` argument:
 
 ```rust
 #[derive(Debug, uhoh::Error)]
@@ -27,12 +30,15 @@ assert_eq!(error.to_string(), "Job daily-report failed.");
 assert_eq!(error.code(), "W201");
 ```
 
-The derive implements `Display` and `std::error::Error`, and adds:
+The derive implements `Display` and `std::error::Error`.
+It also adds `code(&self) -> &'static str`.
 
-- `code(&self) -> &'static str`
-- `service_error(&self) -> uhoh::ServiceError` with the `serde` feature
+A feature enables an optional part of the library.
+With the `serde` feature, it adds `service_error(&self) -> uhoh::ServiceError`.
 
-Enable `serde` to use `service_error()` and its serializable response shape:
+Serialization converts a value to a format such as JSON.
+To enable `service_error()` and serialization, add the `serde` feature to your
+`Cargo.toml` dependency:
 
 ```toml
 [dependencies]
@@ -49,9 +55,10 @@ uhoh = { path = "../uhoh", features = ["serde"] }
 
 ### Converting source errors
 
-Mark the sole field of a tuple variant with `#[from]` to generate a standard
-`From<SourceError>` implementation. This lets `?` convert a source error into
-your user-facing error automatically:
+A tuple variant stores values in fields without names.
+Use a tuple variant with one field for the source error.
+Mark that field with `#[from]` to generate `From<SourceError>`.
+The `?` operator can then convert the source error into your application error:
 
 ```rust
 #[derive(Debug, uhoh::Error)]
@@ -66,14 +73,16 @@ fn load_filter() -> Result<(), DatabaseError> {
 }
 ```
 
-`#[from]` is intentionally limited to a one-field tuple variant, so each
-conversion has one clear source type and destination variant.
+`#[from]` supports only tuple variants with one field.
+Each conversion has one source type and one destination variant.
 
 ### Transparent error wrappers
 
-Use `#[error(transparent)]` on a one-field tuple variant to preserve the
-wrapped `uhoh` error's message, code, status, and serialized service-error
-body. It composes naturally with `#[from]`:
+A transparent wrapper returns values from the error it contains.
+Use `#[error(transparent)]` on a tuple variant with one field.
+The variant preserves the message, code, status, and serialized response body
+of the inner `uhoh` error.
+You can combine it with `#[from]`:
 
 ```rust
 #[derive(Debug, uhoh::Error)]
@@ -83,13 +92,17 @@ enum RequestError {
 }
 ```
 
-Status forwarding requires `http`; service-error body forwarding requires
-`serde`. Without either feature, wrappers preserve the message and code.
+To return the inner status, enable `http`.
+To return the inner response body, enable `serde`.
+Without either feature, wrappers preserve the message and code.
 
 ## Presets
 
-Presets supply a safe message and HTTP status while keeping the error code
-explicit. Built-in presets are `ise`, `not_found`, and `unauthorized`:
+A preset supplies a fixed message and an HTTP status.
+The message does not expose the data that the error stores.
+You must still supply the error code.
+The built-in presets are `ise`, `not_found`, and `unauthorized`.
+This example uses `ise`:
 
 ```rust
 #[derive(Debug, uhoh::Error)]
@@ -99,35 +112,36 @@ enum RequestError {
 }
 ```
 
-It expands to the message `"Something went wrong while processing your
-request."` and `StatusCode::INTERNAL_SERVER_ERROR`. An explicit `status = ...`
-overrides the preset status when needed.
+The `ise` preset supplies `"Something went wrong while processing your request."`
+and `StatusCode::INTERNAL_SERVER_ERROR`.
+An explicit `status = ...` replaces the status from the preset.
 
-`not_found` returns `404 Not Found` with `"The requested resource was not
-found."`; `unauthorized` returns `401 Unauthorized` with `"You are not
-authorized to perform that action."`.
+The `not_found` preset returns `404 Not Found` with `"The requested resource was not found."`.
+The `unauthorized` preset returns `401 Unauthorized` with `"You are not authorized to perform that action."`.
 
 ## Axum errors
 
-Enable the `axum` feature when the error is returned from an Axum handler:
+An Axum handler is a function that handles a request.
+If your Axum handler returns the error, enable the `axum` feature in your
+`Cargo.toml` dependency:
 
 ```toml
 [dependencies]
 uhoh = { version = "0.1", features = ["axum"] }
 ```
 
-The `axum` feature enables `http` and `serde` automatically. Enable just `http`
-to use `status_code()` without Axum or serialization.
+The `axum` feature enables `http` and `serde` automatically.
+To use `status_code()` without Axum or serialization, enable only `http`.
 
-Give **every** variant a `status` argument (or a preset that supplies one). The derive adds
-`status_code()` and implements Axum's `IntoResponse` using that status and a
-JSON `ServiceError` body.
+Give every variant a `status` argument or a preset that supplies one.
+The derive adds `status_code()` and implements `IntoResponse` for Axum.
+The response uses that status and a JSON `ServiceError` body.
 
-Use a status name such as `status = INTERNAL_SERVER_ERROR` or
-`status = NOT_FOUND`; no status-code import is needed. Qualified paths such as
-`status = StatusCode::NOT_FOUND` and other status expressions also work. Bare
-identifiers always refer to `http::StatusCode` constants; qualify custom
-constants with their module path (for example, `status = crate::MY_STATUS`).
+Use a status name such as `status = INTERNAL_SERVER_ERROR` or `status = NOT_FOUND`.
+These names need no import.
+Paths such as `status = StatusCode::NOT_FOUND` and other status expressions also work.
+A name without a path always refers to a `http::StatusCode` constant.
+For custom constants, include the module path, for example, `status = crate::MY_STATUS`.
 
 ```rust
 use uhoh::axum::{
@@ -166,15 +180,16 @@ let response = error.into_response();
 assert_eq!(response.status(), StatusCode::NOT_FOUND);
 ```
 
-An enum must either specify `status` for every variant or for none of them.
-This prevents a response implementation with an ambiguous status code. Errors
-without `status` work in HTTP-free services and do not require Axum.
+An enum must supply a status for every variant or for none of them.
+This rule gives each response a defined status code.
+Errors without a status work in services that do not use HTTP or Axum.
 
 ## Formatting messages
 
-Tuple variants use standard positional formatting such as `{0}`. Named-field
-variants can refer to fields by name, such as `{model}` and `{field}`. A
-message without placeholders does not expose its variant payload, which is
-useful for keeping internal context out of user-facing errors.
+A placeholder marks where a message inserts a field value.
+Tuple variants refer to fields by position, such as `{0}`.
+Variants with named fields can use names, such as `{model}` and `{field}`.
+A message without placeholders does not expose the data that the variant stores.
+This keeps internal data out of messages that users see.
 
 [docs]: https://docs.rs/uhoh

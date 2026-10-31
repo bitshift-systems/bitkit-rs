@@ -1,8 +1,14 @@
-//! Application errors with explicit codes and optional JSON and HTTP responses.
+//! `uhoh` generates application errors with codes and optional JSON and HTTP responses.
 //!
-//! Derive [`Error`] on an enum to implement [`std::fmt::Display`] and
-//! [`std::error::Error`], and to add a `code()` method. Derive [`Debug`] separately.
-//! Each ordinary variant needs a message and a string-literal code:
+//! An enum is a type with named alternatives.
+//! Each alternative is a variant.
+//! The [`Error`] derive generates code for your enum.
+//! It implements [`std::fmt::Display`] and [`std::error::Error`].
+//! It also adds a `code()` method.
+//!
+//! Add `#[derive(Debug, uhoh::Error)]` to your enum.
+//! `Error` does not generate [`Debug`], so the example derives both.
+//! For each ordinary variant, supply a message and a code in double quotes:
 //!
 //! ```
 //! #[derive(Debug, uhoh::Error)]
@@ -20,18 +26,25 @@
 //! let _: &dyn std::error::Error = &error;
 //! ```
 //!
-//! Codes are supplied by your application; the derive does not check their
-//! uniqueness. Keep them stable when callers use them to identify errors.
+//! Your application supplies the codes.
+//! The derive accepts duplicate codes.
+//! If callers use codes to identify errors, keep those codes stable.
 //!
 //! # Features
 //!
-//! No optional features are enabled by default.
+//! A feature enables an optional part of the library.
+//! By default, `uhoh` enables no optional features.
+//! Serialization converts a value to a format such as JSON.
+//! Deserialization converts that format back to a value.
+//! Choose the features that your application needs:
 //!
-//! | Feature | Additional functionality |
+//! | Feature | What it adds |
 //! | --- | --- |
-//! | `serde` | `ServiceError` and `service_error()`, with Serde serialization and deserialization. |
-//! | `http` | Re-exports `http` and adds `status_code()` to enums with statuses. |
-//! | `axum` | Enables `http` and `serde`, re-exports `axum`, and implements `IntoResponse` for enums with statuses. |
+//! | `serde` | Adds `ServiceError` and `service_error()`. Supports serialization and deserialization with Serde. |
+//! | `http` | Makes `http` available through `uhoh`. Adds `status_code()` to enums with statuses. |
+//! | `axum` | Enables `http` and `serde`. Makes `axum` available through `uhoh`. Implements `IntoResponse` for enums with statuses. |
+//!
+//! To enable `axum`, add this dependency to your `Cargo.toml`:
 //!
 //! ```toml
 //! [dependencies]
@@ -40,21 +53,26 @@
 //!
 //! # Formatting messages
 //!
-//! Tuple fields use positional placeholders such as `{0}`; named fields use
-//! placeholders such as `{name}`. Formatting specifiers such as `{0:?}` work
-//! as in `format!`. When a tuple message contains placeholders, all its fields
-//! are passed as positional arguments and must be used by the format string.
-//! A literal message without braces can leave the entire payload unformatted.
-//! Named-field messages can use only the fields they need.
+//! A placeholder marks where a message inserts a field value.
+//! A tuple variant stores values in fields without names.
+//! Tuple fields use positions such as `{0}`.
+//! Named fields use placeholders such as `{name}`.
+//! Formatting controls such as `{0:?}` work as in `format!`.
 //!
-//! The displayed message also becomes the serialized response message. Include
-//! only context you intend to expose to callers; a fixed message or preset can
-//! keep an internal payload out of the response.
+//! If a tuple message contains placeholders, the derive passes all fields as arguments in field order.
+//! The message must use every argument.
+//! A message without braces can omit all field values.
+//! Messages with named fields can use only the fields they need.
+//!
+//! The displayed message also becomes the message in the serialized response.
+//! Include only data that you intend to expose to callers.
+//! A fixed message keeps internal field values out of the response.
 //!
 //! # Converting errors
 //!
-//! Put `#[from]` on the sole field of a tuple variant to generate
-//! `From<Source>` for the enum. This supports automatic conversion with `?`:
+//! Use a tuple variant with one field for the source error.
+//! Put `#[from]` on that field to generate `From<Source>` for the enum.
+//! The `?` operator can then convert the source error into your application error:
 //!
 //! ```
 //! #[derive(Debug, uhoh::Error)]
@@ -71,17 +89,22 @@
 //! assert_eq!(error.to_string(), "Could not read configuration.");
 //! ```
 //!
-//! `#[from]` does not implement error chaining. The generated
-//! [`std::error::Error::source`] uses the default implementation and returns
-//! `None`, including for transparent variants.
+//! Error chaining links an error to its underlying cause.
+//! `#[from]` does not implement error chaining.
+//! The generated [`std::error::Error::source`] uses the default implementation and returns `None`.
+//! This also applies to transparent wrappers, described below.
 //!
 //! # Transparent wrappers
 //!
-//! `#[error(transparent)]` requires a one-field tuple variant and accepts no
-//! message, code, or status overrides. It forwards the wrapped value's display
-//! message and `code()`, plus `service_error()` with `serde` and `status_code()`
-//! with `http`. The wrapped type must provide those methods for the enabled
-//! features; implementing `std::error::Error` alone is insufficient.
+//! A transparent wrapper returns values from the error it contains.
+//! `#[error(transparent)]` requires a tuple variant with one field.
+//! It accepts no replacement message, code, or status.
+//! It returns the displayed message and `code()` from the inner error.
+//!
+//! With `serde`, it also returns `service_error()` from the inner error.
+//! With `http`, it also returns `status_code()` from the inner error.
+//! The inner type must provide these methods for the enabled features.
+//! A type that implements only `std::error::Error` does not meet these requirements.
 //!
 //! ```
 //! #[derive(Debug, uhoh::Error)]
@@ -101,19 +124,19 @@
 //! assert_eq!(error.to_string(), "The requested resource was not found.");
 //! ```
 //!
-//! With `http`, transparent variants count as having a status, so every other
-//! variant in the enum must also supply one.
+//! With `http`, transparent variants count as variants with a status.
+//! Every other variant in the enum must then supply a status.
 //!
 //! # HTTP statuses and presets
 //!
-//! Set `status = NOT_FOUND` to use a `http::StatusCode` constant without an
-//! import. Qualified paths and expressions also work, such as
-//! `status = uhoh::http::StatusCode::NOT_FOUND`. A bare identifier always names
-//! a `StatusCode` constant; qualify application constants, for example
-//! `status = crate::MY_STATUS`.
+//! Set `status = NOT_FOUND` to use a `http::StatusCode` constant without an import.
+//! Paths and expressions also work, such as `status = uhoh::http::StatusCode::NOT_FOUND`.
+//! A name without a path always refers to a `StatusCode` constant.
+//! For application constants, include the module path, for example, `status = crate::MY_STATUS`.
 //!
-//! Every variant must supply a status, or none may do so. Presets supply both
-//! a fixed message and a status; they still require an explicit code:
+//! Every variant must supply a status, or all variants must omit it.
+//! A preset supplies a fixed message and an HTTP status.
+//! You must still supply an explicit code when you use a preset:
 //!
 //! | Preset | Message | Status |
 //! | --- | --- | --- |
@@ -121,12 +144,12 @@
 //! | `not_found` | The requested resource was not found. | 404 |
 //! | `unauthorized` | You are not authorized to perform that action. | 401 |
 //!
-//! An explicit `status = ...` overrides a preset's status. Status attributes
-//! and presets are accepted without `http`, but do not generate `status_code()`
-//! or HTTP responses in that configuration.
+//! An explicit `status = ...` replaces the status from the preset.
+//! The derive accepts `status` arguments and presets without the `http` feature.
+//! Without `http`, these arguments do not generate `status_code()` or HTTP responses.
 //!
-//! With `axum`, enums with statuses implement `IntoResponse` using the selected
-//! status and a JSON service-error body:
+//! With `axum`, enums with statuses implement `IntoResponse`.
+//! The response uses the selected status and a JSON `ServiceError` body:
 //!
 //! ```
 //! # #[cfg(feature = "axum")]
@@ -151,9 +174,9 @@
 //!
 //! # Serialized errors
 //!
-//! With `serde`, `service_error()` returns a `ServiceError` containing the
-//! code, formatted message, and `details: None`. Transparent variants forward
-//! the wrapped value's entire service error, including its details.
+//! With `serde`, `service_error()` returns a `ServiceError`.
+//! For ordinary variants, it contains the code, formatted message, and `details: None`.
+//! Transparent variants return the entire `ServiceError` from the inner error, including its details.
 //!
 //! ```
 //! # #[cfg(feature = "serde")]
@@ -178,31 +201,35 @@
 extern crate self as uhoh;
 
 #[cfg(feature = "axum")]
-/// Axum integration, available with the `axum` feature.
+/// The `axum` feature makes Axum available through `uhoh`.
 pub use axum;
 #[cfg(feature = "http")]
-/// HTTP types, available with the `http` feature.
+/// The `http` feature makes HTTP types available through `uhoh`.
 pub use http;
 pub use uhoh_macros::Error;
 
-/// A serializable application-error body, available with the `serde` feature.
+/// This type stores an application error body.
+/// It is available with the `serde` feature.
 ///
-/// Derived `service_error()` methods populate `code` and `message` and leave
-/// `details` as `None`, serialized as JSON `null`. You can set `details` on the
-/// returned value before serializing it. With `axum`, the generated
-/// `IntoResponse` implementation creates its own body through `service_error()`.
+/// Serialization converts a value to a format such as JSON.
+/// For ordinary variants, generated `service_error()` methods set `code` and `message`.
+/// They leave `details` as `None`, which Serde converts to JSON `null`.
+/// You can set `details` on the returned value before serialization.
+/// With `axum`, the generated `IntoResponse` implementation creates its own body through `service_error()`.
 ///
-/// This type also implements Serde's `Deserialize`, but its borrowed
-/// `&'static str` code requires input that can supply a static string. It is
-/// not an owned error type for deserializing arbitrary response buffers.
+/// Deserialization converts a format such as JSON back to a value.
+/// This type also implements `Deserialize` from Serde.
+/// Its `&'static str` code borrows a string that must remain valid for the entire program.
+/// It cannot deserialize arbitrary response buffers into an error that owns its code.
 #[cfg(feature = "serde")]
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ServiceError {
-    /// The application-defined error code, independent of the display message.
+    /// This field stores the code that the application defines independently of the displayed message.
     pub code: &'static str,
-    /// The user-facing message produced by the error's `Display` implementation.
+    /// This field stores the message that `Display` produces for the caller.
     pub message: String,
-    /// Optional structured context; `None` serializes as `null`, not an omitted field.
+    /// This field stores optional data about the error.
+    /// Serde converts `None` to `null` and keeps the field in the JSON output.
     pub details: Option<serde_json::Value>,
 }
 

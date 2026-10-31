@@ -128,7 +128,8 @@ fn derive_inner(input: &DeriveInput) -> Result<TokenStream> {
 
     let http_impl = (cfg!(feature = "http") && has_status).then(|| {
         quote! {
-            /// Returns the HTTP status assigned to this variant or forwarded by its wrapped error.
+            /// This method returns the HTTP status for this variant.
+            /// For a transparent wrapper, it returns the status from the inner error.
             pub fn status_code(&self) -> ::uhoh::http::StatusCode {
                 match self { #(#status_arms),* }
             }
@@ -150,7 +151,8 @@ fn derive_inner(input: &DeriveInput) -> Result<TokenStream> {
 
     let service_error_impl = cfg!(feature = "serde").then(|| {
         quote! {
-            /// Returns the code and display message with no details, or forwards a transparent error's body.
+            /// For ordinary variants, this method returns the code and displayed message with no details.
+            /// For a transparent wrapper, it returns the entire body from the inner error.
             pub fn service_error(&self) -> ::uhoh::ServiceError {
                 match self { #(#service_error_arms),* }
             }
@@ -181,7 +183,8 @@ fn derive_inner(input: &DeriveInput) -> Result<TokenStream> {
         impl #impl_generics ::std::error::Error for #name #type_generics #where_clause {}
 
         impl #impl_generics #name #type_generics #where_clause {
-            /// Returns the application-defined code for this variant or its wrapped error.
+            /// This method returns the code that the application defines for this variant.
+            /// For a transparent wrapper, it returns the code from the inner error.
             pub fn code(&self) -> &'static str {
                 match self { #(#code_arms),* }
             }
