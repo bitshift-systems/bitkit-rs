@@ -38,7 +38,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Repo
-        uses: bitshift-systems/.github/actions/setup-repo@80203ed69d67558f5b74d3419eae9748624fd162 # setup-repo-v1.0.1
+        uses: bitshift-systems/.github/actions/setup-repo@50b88cc93d8640157770512ec9e11750d6c06a31 # setup-repo-v2.2.0
         with:
           cache-key: rust-build
 
@@ -79,7 +79,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Repo
-        uses: bitshift-systems/.github/actions/setup-repo@80203ed69d67558f5b74d3419eae9748624fd162 # setup-repo-v1.0.1
+        uses: bitshift-systems/.github/actions/setup-repo@50b88cc93d8640157770512ec9e11750d6c06a31 # setup-repo-v2.2.0
         with:
           cache-key: rust-test
 
@@ -109,7 +109,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup Repo
-        uses: bitshift-systems/.github/actions/setup-repo@80203ed69d67558f5b74d3419eae9748624fd162 # setup-repo-v1.0.1
+        uses: bitshift-systems/.github/actions/setup-repo@50b88cc93d8640157770512ec9e11750d6c06a31 # setup-repo-v2.2.0
         with:
           cache-key: rust-lint
       - name: Install missing Rust components
@@ -144,7 +144,7 @@ jobs:
           echo "jactionlint=$(mise config get tools.jactionlint)" >> "$GITHUB_OUTPUT"
 
       - name: Lint workflows
-        uses: bitshift-systems/.github/actions/workflow-lint@d0a18edb781c2752fbe2b8f36629a1bc95649548 # workflow-lint-v1.0.0
+        uses: bitshift-systems/.github/actions/workflow-lint@a873c98baeea43f21c2de91bdeb6cd24e13022e3 # workflow-lint-v2.0.0
         with:
           jactionlint-version: ${{ steps.tools.outputs.jactionlint }}
 
